@@ -1,5 +1,10 @@
+# rpmdev-vercmp ranks a letter-leading version older than 0, so the
+# extra test rejects Version v1.rev20220705.1.32.1. The RPM version
+# drops that leading v. The Maven coordinate stays mavenver.
+%global		mavenver v1.rev20220705.1.32.1
+
 Name:		google-api-services-storage
-Version:	v1.rev20220705.1.32.1
+Version:	1.rev20220705.1.32.1
 Release:	1
 Summary:	Google Cloud Storage JSON API client
 Group:		Development/Java
@@ -8,9 +13,9 @@ URL:		https://github.com/googleapis/google-api-java-client-services
 # Generated Java client for Cloud Storage JSON API. The Maven Central
 # sources jar also shipped class files and jars; this archive keeps the
 # Java sources, the discovery document, and the Apache-2.0 license.
-# The catalog pin has two hyphens. RPM stores the dotted form, which
-# the Gradle metadata comparison treats as the same version.
-Source0:	google-api-services-storage-%{version}.tar.gz
+# The catalog pin has two hyphens. The POM version is the dotted form
+# with the leading v, which the Gradle metadata comparison accepts.
+Source0:	google-api-services-storage-%{mavenver}.tar.gz
 
 BuildArch:	noarch
 BuildRequires:	java-current-devel
@@ -34,7 +39,7 @@ generated sources compiled against google-api-client 1.34.0. The
 provides version is v1.rev20220705.1.32.1.
 
 %prep
-%autosetup -n google-api-services-storage-%{version}
+%autosetup -n google-api-services-storage-%{mavenver}
 find . \( -name '*.jar' -o -name '*.class' -o -name '*.so' -o -name '*.node' -o -name '*.wasm' \) -delete
 
 %build
@@ -88,6 +93,7 @@ sysjar install --buildroot %{buildroot} \
 
 %check
 set -eo pipefail
+grep -F -q '<version>v1.rev20220705.1.32.1</version>' google-api-services-storage.pom
 JAR=%{buildroot}%{_javadir}/google-api-services-storage.jar
 test -f "$JAR"
 mkdir -p check

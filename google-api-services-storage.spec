@@ -1,11 +1,15 @@
 # rpmdev-vercmp ranks a letter-leading version older than 0, so the
-# extra test rejects Version v1.rev20220705.1.32.1. The RPM version
-# drops that leading v. The Maven coordinate stays mavenver.
+# extra test rejects a Version that starts with v. The RPM version
+# drops that leading v and uses dots. pomver is the catalog pin.
 %global		mavenver v1.rev20220705.1.32.1
+%global		pomver v1-rev20220705-1.32.1
+# Two hyphens in an mvn() EVR warn instead of failing the build.
+# The header stores the catalog string.
+%global		_wrong_version_format_terminate_build 0
 
 Name:		google-api-services-storage
 Version:	1.rev20220705.1.32.1
-Release:	1
+Release:	2
 Summary:	Google Cloud Storage JSON API client
 Group:		Development/Java
 License:	Apache-2.0
@@ -13,8 +17,7 @@ URL:		https://github.com/googleapis/google-api-java-client-services
 # Generated Java client for Cloud Storage JSON API. The Maven Central
 # sources jar also shipped class files and jars; this archive keeps the
 # Java sources, the discovery document, and the Apache-2.0 license.
-# The catalog pin has two hyphens. The POM version is the dotted form
-# with the leading v, which the Gradle metadata comparison accepts.
+# The sources directory is mavenver. The POM version is pomver.
 Source0:	google-api-services-storage-%{mavenver}.tar.gz
 
 BuildArch:	noarch
@@ -36,7 +39,7 @@ Requires:	mvn(com.google.api-client:google-api-client) = 1.34.0
 %description
 Cloud Storage JSON API v1 client used by Gradle. The classes are the
 generated sources compiled against google-api-client 1.34.0. The
-provides version is v1.rev20220705.1.32.1.
+provides version is %{pomver}.
 
 %prep
 %autosetup -n google-api-services-storage-%{mavenver}
@@ -67,7 +70,7 @@ cat > google-api-services-storage.pom << 'EOF'
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.google.apis</groupId>
   <artifactId>google-api-services-storage</artifactId>
-  <version>v1.rev20220705.1.32.1</version>
+  <version>%{pomver}</version>
   <name>Cloud Storage JSON API</name>
   <description>Generated client for the Google Cloud Storage JSON API</description>
   <licenses>
@@ -93,7 +96,8 @@ sysjar install --buildroot %{buildroot} \
 
 %check
 set -eo pipefail
-grep -F -q '<version>v1.rev20220705.1.32.1</version>' google-api-services-storage.pom
+grep -F -q '<version>%{pomver}</version>' google-api-services-storage.pom
+grep -F -q '"version": "%{pomver}"' %{buildroot}/usr/share/sysjar/index/com.google.apis/google-api-services-storage.sysjar
 JAR=%{buildroot}%{_javadir}/google-api-services-storage.jar
 test -f "$JAR"
 mkdir -p check
